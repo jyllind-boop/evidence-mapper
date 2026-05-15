@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evidence Mapper — Claim-to-Literature Research Tool</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f4f0;
+    --bg-tertiary: #eeece8;
+    --text-primary: #1a1a18;
+    --text-secondary: #6b6b68;
+    --text-tertiary: #999997;
+    --border-light: rgba(0,0,0,0.12);
+    --border-mid: rgba(0,0,0,0.25);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --purple-light: #EEEDFE;
+    --purple-mid: #AFA9EC;
+    --purple: #534AB7;
+    --purple-dark: #3C3489;
+    --teal-light: #E1F5EE;
+    --teal: #0F6E56;
+    --amber-light: #FAEEDA;
+    --amber: #854F0B;
+    --coral-light: #FAECE7;
+    --coral: #993C1D;
+    --green-light: #EAF3DE;
+    --green: #3B6D11;
+    --red-light: #FCEBEB;
+    --red: #A32D2D;
+    --gray-light: #F1EFE8;
+    --gray: #5F5E5A;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg-secondary); color: var(--text-primary); min-height: 100vh; font-size: 14px; line-height: 1.5; }
+  .app { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar { width: 230px; background: var(--bg-primary); border-right: 0.5px solid var(--border-light); padding: 0; flex-shrink: 0; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+  .sidebar-logo { padding: 1.25rem 1.25rem 1rem; border-bottom: 0.5px solid var(--border-light); }
+  .logo-mark { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .logo-icon { width: 28px; height: 28px; background: var(--purple); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; }
+  .logo-title { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+  .logo-sub { font-size: 11px; color: var(--text-tertiary); }
+  .nav-section { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); padding: 1rem 1.25rem 0.3rem; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 1.25rem; font-size: 13px; cursor: pointer; color: var(--text-secondary); background: none; border: none; width: 100%; text-align: left; transition: background 0.1s, color 0.1s; }
+  .nav-item i { font-size: 17px; flex-shrink: 0; }
+  .nav-item:hover { background: var(--bg-secondary); color: var(--text-primary); }
+  .nav-item.active { background: var(--purple-light); color: var(--purple-dark); font-weight: 500; }
+  .sidebar-footer { margin-top: auto; padding: 1rem 1.25rem; border-top: 0.5px solid var(--border-light); font-size: 11px; color: var(--text-tertiary); }
+
+  /* Main */
+  .main { flex: 1; overflow-y: auto; background: var(--bg-secondary); }
+  .page { padding: 2rem 2.5rem; max-width: 960px; }
+  .page-header { margin-bottom: 1.75rem; }
+  .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text-secondary); }
+
+  /* Cards */
+  .card { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .card-title { font-size: 13px; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary); }
+  .card-sub { font-size: 12px; color: var(--text-secondary); margin-top: -0.75rem; margin-bottom: 1rem; }
+
+  /* Forms */
+  label { font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px; margin-top: 14px; font-weight: 500; }
+  label:first-child, .label-first { margin-top: 0; }
+  input[type=text], input[type=email], input[type=url], input, select, textarea {
+    width: 100%; padding: 8px 11px; border: 0.5px solid var(--border-mid); border-radius: var(--radius-md);
+    font-size: 13px; font-family: inherit; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(83,74,183,0.12); }
+  textarea { resize: vertical; min-height: 90px; }
+  select { cursor: pointer; }
+
+  /* Buttons */
+  .btn { padding: 8px 16px; border-radius: var(--radius-md); font-size: 13px; font-family: inherit; cursor: pointer; border: 0.5px solid var(--border-mid); background: var(--bg-primary); color: var(--text-primary); transition: background 0.1s, border-color 0.1s; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:hover { background: var(--bg-secondary); }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .btn-primary:hover { background: var(--purple-dark); border-color: var(--purple-dark); }
+  .btn-danger { background: var(--red-light); color: var(--red); border-color: transparent; }
+  .btn-danger:hover { background: #F7C1C1; }
+  .btn-sm { padding: 5px 11px; font-size: 12px; }
+  .btn-row { display: flex; gap: 8px; margin-top: 1.25rem; flex-wrap: wrap; align-items: center; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+  /* Stat cards */
+  .stat-card { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 1rem 1.25rem; }
+  .stat-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-val { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+
+  /* Badges */
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .badge-purple { background: var(--purple-light); color: var(--purple-dark); }
+  .badge-teal { background: var(--teal-light); color: var(--teal); }
+  .badge-amber { background: var(--amber-light); color: var(--amber); }
+  .badge-coral { background: var(--coral-light); color: var(--coral); }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-gray { background: var(--gray-light); color: var(--gray); }
+
+  /* Upload zone */
+  .upload-zone { border: 1.5px dashed var(--border-mid); border-radius: var(--radius-lg); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .upload-zone:hover { background: var(--bg-secondary); border-color: var(--purple-mid); }
+  .upload-icon { font-size: 36px; color: var(--text-tertiary); margin-bottom: 0.5rem; display: block; }
+  .upload-label { font-size: 13px; color: var(--text-secondary); }
+  .upload-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+
+  /* Tags / theme pills */
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag { display: inline-flex; align-items: center; gap: 5px; background: var(--purple-light); color: var(--purple-dark); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 500; }
+  .tag-del { cursor: pointer; font-size: 15px; line-height: 1; opacity: 0.6; }
+  .tag-del:hover { opacity: 1; }
+  .theme-pill { display: inline-flex; align-items: center; background: var(--bg-secondary); border-radius: 20px; padding: 4px 11px; font-size: 12px; cursor: pointer; border: 0.5px solid var(--border-light); margin: 3px; transition: all 0.1s; color: var(--text-secondary); }
+  .theme-pill:hover { background: var(--purple-light); color: var(--purple-dark); border-color: var(--purple-mid); }
+
+  /* Steps */
+  .steps { display: flex; gap: 0; margin-bottom: 1.75rem; border-radius: var(--radius-md); overflow: hidden; border: 0.5px solid var(--border-light); }
+  .step { flex: 1; padding: 9px 12px; text-align: center; font-size: 12px; font-weight: 500; background: var(--bg-secondary); color: var(--text-tertiary); border-right: 0.5px solid var(--border-light); }
+  .step:last-child { border-right: none; }
+  .step.active { background: var(--purple-light); color: var(--purple-dark); }
+  .step.done { background: var(--teal-light); color: var(--teal); }
+
+  /* Tabs */
+  .tab-row { display: flex; border-bottom: 0.5px solid var(--border-light); margin-bottom: 1.25rem; gap: 0; overflow-x: auto; }
+  .tab { padding: 9px 16px; font-size: 13px; cursor: pointer; border: none; border-bottom: 2px solid transparent; color: var(--text-secondary); background: none; font-family: inherit; font-weight: 500; white-space: nowrap; transition: color 0.1s, border-color 0.1s; }
+  .tab:hover { color: var(--text-primary); }
+  .tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+  /* Evidence rows */
+  .evidence-row { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 0.75rem; transition: border-color 0.1s; }
+  .evidence-row:hover { border-color: var(--border-mid); }
+  .evidence-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
+  .evidence-sentence { font-size: 13px; color: var(--text-secondary); font-style: italic; margin-bottom: 6px; line-height: 1.6; }
+  .evidence-claim { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .evidence-source { font-size: 12px; color: var(--text-tertiary); }
+
+  /* Results */
+  .result-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); margin-bottom: 7px; }
+  .result-text { font-size: 13px; line-height: 1.7; color: var(--text-primary); }
+  .result-section { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 0.5px solid var(--border-light); }
+  .claim-item { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; }
+  .claim-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 8px; }
+  .claim-text { font-size: 13px; font-weight: 500; font-style: italic; flex: 1; line-height: 1.5; }
+  .fit-badge { font-size: 12px; color: var(--text-secondary); white-space: nowrap; font-weight: 500; }
+
+  /* Score bar */
+  .score-bar { height: 4px; border-radius: 2px; background: var(--border-light); margin-top: 6px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+  .score-high { background: #1D9E75; }
+  .score-mid { background: #EF9F27; }
+  .score-low { background: #E24B4A; }
+
+  /* Caution */
+  .caution-box { background: var(--amber-light); border-left: 3px solid #EF9F27; padding: 9px 13px; border-radius: 0 6px 6px 0; font-size: 12px; color: #633806; margin-top: 10px; line-height: 1.6; display: flex; gap: 7px; align-items: flex-start; }
+  .caution-box i { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+  /* Inline edit */
+  .inline-edit { background: #FFFBF0; border: 0.5px solid #FAC775; border-radius: var(--radius-md); padding: 10px 12px; font-size: 13px; line-height: 1.7; width: 100%; font-family: inherit; resize: vertical; min-height: 80px; }
+  .inline-edit:focus { outline: none; border-color: #EF9F27; box-shadow: 0 0 0 3px rgba(239,159,39,0.12); }
+
+  /* Record table */
+  .record-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .record-table td { padding: 7px 10px; border-bottom: 0.5px solid var(--border-light); vertical-align: top; }
+  .record-table td:first-child { font-weight: 500; color: var(--text-secondary); width: 35%; background: var(--bg-secondary); }
+
+  /* Filters */
+  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .filter-row select { width: auto; font-size: 12px; padding: 6px 10px; }
+  .search-row { display: flex; gap: 8px; margin-bottom: 0.75rem; }
+  .search-row input { flex: 1; }
+
+  /* Export rows */
+  .export-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 0.5px solid var(--border-light); gap: 12px; }
+  .export-item:last-child { border-bottom: none; }
+  .export-item-info { flex: 1; }
+  .export-item-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .export-item-desc { font-size: 12px; color: var(--text-secondary); }
+
+  /* Divider */
+  .divider { height: 0.5px; background: var(--border-light); margin: 1.25rem 0; }
+
+  /* Empty state */
+  .empty-state { text-align: center; padding: 3rem 2rem; color: var(--text-secondary); }
+  .empty-state i { font-size: 44px; display: block; margin-bottom: 0.75rem; color: var(--text-tertiary); }
+  .empty-state-title { font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+  .empty-state-sub { font-size: 13px; }
+
+  /* Spinner */
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.65s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--text-primary); color: white; padding: 10px 18px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; z-index: 1000; opacity: 0; transform: translateY(8px); transition: all 0.25s; pointer-events: none; display: flex; align-items: center; gap: 8px; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* Source profile accent */
+  .source-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+  .source-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; line-height: 1.4; }
+  .source-meta { font-size: 12px; color: var(--text-secondary); }
+
+  /* API key banner */
+  .api-banner { background: var(--purple-light); border: 0.5px solid var(--purple-mid); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: flex-start; gap: 10px; }
+  .api-banner i { font-size: 18px; color: var(--purple); flex-shrink: 0; margin-top: 1px; }
+  .api-banner-text { font-size: 13px; color: var(--purple-dark); line-height: 1.6; }
+  .api-banner-text strong { font-weight: 600; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .sidebar { width: 200px; }
+    .page { padding: 1.25rem; }
+    .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 560px) {
+    .app { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; flex-direction: row; overflow-x: auto; padding: 0; }
+    .sidebar-logo { display: none; }
+    .sidebar .nav-section { display: none; }
+    .sidebar-footer { display: none; }
+    .nav-item { flex-direction: column; gap: 2px; padding: 10px 14px; font-size: 10px; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <div class="logo-icon"><i class="ti ti-map-pin" style="font-size:15px;"></i></div>
+        <div class="logo-title">Evidence Mapper</div>
+      </div>
+      <div class="logo-sub">Claim-to-Literature Research Tool</div>
+    </div>
+    <div class="nav-section">Main</div>
+    <button class="nav-item active" data-page="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+    <button class="nav-item" data-page="upload"><i class="ti ti-upload"></i> Upload Source</button>
+    <button class="nav-item" data-page="map"><i class="ti ti-map-pin"></i> Claim Mapping</button>
+    <div class="nav-section">Library</div>
+    <button class="nav-item" data-page="library"><i class="ti ti-books"></i> Evidence Library</button>
+    <button class="nav-item" data-page="sources"><i class="ti ti-file-text"></i> Source Profiles</button>
+    <button class="nav-item" data-page="themes"><i class="ti ti-tags"></i> Theme Map</button>
+    <div class="nav-section">Output</div>
+    <button class="nav-item" data-page="export"><i class="ti ti-download"></i> Export Centre</button>
+    <div class="nav-section">Settings</div>
+    <button class="nav-item" data-page="settings"><i class="ti ti-settings"></i> Settings</button>
+    <div class="sidebar-footer">Evidence Mapper v1.0</div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main" id="main"></main>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── State ───────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'evidenceMapper_v1';
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return {
+    sources: [],
+    evidenceRecords: [],
+    apiKey: '',
+    sciteKey: '',
+    page: 'dashboard',
+    uploadStep: 1,
+    uploadForm: { text:'', apa:'', authors:'', year:'', title:'', journal:'', doi:'', source_type:'Journal article', discipline:'', country:'', maori_relevance:'' },
+    mapForm: { sentence:'', purpose:'Published piece', project:'', section:'', themes:[], source_idx:0, needs_to_do:'Support a claim' },
+    analysisResult: null,
+    libSearch: '', libProject:'', libPurpose:'', libSupport:'', libTheme:'',
+  };
+}
+
+let S = loadState();
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch(e) {}
+}
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+const THEMES_PRESET = [
+  'Māori marketing','Māori enterprise','Mana','Whakapapa','Taonga','Tikanga',
+  'Māori value exchange','Indigenous economies','Indigenous data sovereignty',
+  'AI ethics','Digital sovereignty','Kaupapa Māori methodology',
+  'Design Science Research','Marketing systems','Relational value',
+  'Cultural authority','Intergenerational responsibility','Institutional transformation',
+  'Research ethics','Decolonising methodology','Indigenous entrepreneurship',
+  'Māori data governance','Value exchange','Cultural labour','Responsible AI'
+];
+
+const PURPOSES = [
+  'Confirmation of Candidature','Doctoral thesis','Published piece',
+  'Ad hoc paper','Grant application','Ethics application',
+  'Methodology development','Literature review','Theory development','Other'
+];
+
+const SUPPORT_TYPES = ['Direct','Partial','Contextual','Not supported'];
+
+const NEEDS = [
+  'Support a claim','Define a concept','Provide historical context',
+  'Justify methodology','Identify a gap','Support a transition',
+  'Complicate an argument','Provide a quote','Strengthen theoretical framing',
+  'Strengthen Māori worldview framing','Provide critique or contrast','Other'
+];
+
+// ─── Router ──────────────────────────────────────────────────────────────────
+function navigate(page) {
+  S.page = page;
+  saveState();
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.page === page);
+  });
+  renderPage();
+}
+
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => navigate(el.dataset.page));
+});
+
+function renderPage() {
+  const pages = { dashboard, upload, map, library, sources, themes, exportPage, settings };
+  document.getElementById('main').innerHTML = (pages[S.page] || dashboard)();
+  bindPage();
+}
+
+// ─── Toast ───────────────────────────────────────────────────────────────────
+function toast(msg, icon='ti-check') {
+  const el = document.getElementById('toast');
+  el.innerHTML = `<i class="ti ${icon}"></i> ${msg}`;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function supportBadge(t) {
+  const map = { Direct:'badge-teal', Partial:'badge-amber', Contextual:'badge-purple', 'Not supported':'badge-red' };
+  return `<span class="badge ${map[t]||'badge-gray'}">${esc(t)}</span>`;
+}
+function scoreColor(n) { return n>=7?'score-high':n>=4?'score-mid':'score-low'; }
+function fitBar(score) {
+  return `<div class="score-bar"><div class="score-fill ${scoreColor(score)}" style="width:${score*10}%"></div></div>`;
+}
+
+// ─── Pages ───────────────────────────────────────────────────────────────────
+
+function dashboard() {
+  const total = S.evidenceRecords.length;
+  const srcs = S.sources.length;
+  const weak = S.evidenceRecords.filter(r => r.fit_score && r.fit_score < 5).length;
+  const strong = S.evidenceRecords.filter(r => r.fit_score && r.fit_score >= 8).length;
+  const byProject = {};
+  const byTheme = {};
+  S.evidenceRecords.forEach(r => {
+    if (r.project) byProject[r.project] = (byProject[r.project]||0)+1;
+    (r.themes||[]).forEach(t => { byTheme[t] = (byTheme[t]||0)+1; });
+  });
+  const recent = S.evidenceRecords.slice(-4).reverse();
+
+  return `<div class="page">
+    <div class="page-header">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Your research evidence overview</div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:1.25rem;">
+      <div class="stat-card"><div class="stat-label">Sources</div><div class="stat-val">${srcs}</div></div>
+      <div class="stat-card"><div class="stat-label">Evidence records</div><div class="stat-val">${total}</div></div>
+      <div class="stat-card"><div class="stat-label">Strong evidence</div><div class="stat-val" style="color:var(--teal)">${strong}</div></div>
+      <div class="stat-card"><div class="stat-label">Weak / flagged</div><div class="stat-val" style="color:${weak>0?'var(--red)':'var(--teal)'}">${weak}</div></div>
+    </div>
+
+    ${total === 0 ? `<div class="card"><div class="empty-state">
+      <i class="ti ti-file-search"></i>
+      <div class="empty-state-title">No evidence records yet</div>
+      <div class="empty-state-sub">Upload a source, then map a claim to create your first record.</div>
+      <div class="btn-row" style="justify-content:center;margin-top:1.25rem;">
+        <button class="btn btn-primary" onclick="navigate('upload')"><i class="ti ti-upload"></i> Upload a source</button>
+        <button class="btn" onclick="navigate('map')"><i class="ti ti-map-pin"></i> Map a claim</button>
+      </div>
+    </div></div>` : `
+    <div class="card">
+      <div class="card-title">Recent evidence records</div>
+      ${recent.map(r => `<div class="evidence-row">
+        <div class="evidence-meta">
+          ${r.purpose?`<span class="badge badge-purple">${esc(r.purpose)}</span>`:''}
+          ${r.project?`<span class="badge badge-teal">${esc(r.project)}</span>`:''}
+          ${r.section?`<span class="badge badge-gray">${esc(r.section)}</span>`:''}
+          <span style="margin-left:auto;">${supportBadge(r.support_type)}</span>
+          ${r.fit_score?`<span style="font-size:12px;color:var(--text-secondary);font-weight:500;">Fit: ${r.fit_score}/10</span>`:''}
+        </div>
+        <div class="evidence-sentence">"${esc((r.my_sentence||'').slice(0,180))}${r.my_sentence&&r.my_sentence.length>180?'…':''}"</div>
+        <div class="evidence-source">${esc(r.source_apa||'')}</div>
+      </div>`).join('')}
+    </div>`}
+
+    ${Object.keys(byTheme).length > 0 ? `<div class="card">
+      <div class="card-title">Active themes</div>
+      <div class="tags">
+        ${Object.entries(byTheme).sort((a,b)=>b[1]-a[1]).slice(0,16).map(([t,c])=>`
+          <span class="tag">${esc(t)} <span style="background:var(--purple-mid);border-radius:10px;padding:0 6px;font-size:10px;color:var(--purple-dark);">${c}</span></span>
+        `).join('')}
+      </div>
+    </div>` : ''}
+
+    ${Object.keys(byProject).length > 0 ? `<div class="card">
+      <div class="card-title">Records by project</div>
+      ${Object.entries(byProject).map(([p,c])=>`
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border-light);font-size:13px;">
+          <span>${esc(p)}</span>
+          <span style="color:var(--text-secondary);font-weight:500;">${c} record${c!==1?'s':''}</span>
+        </div>`).join('')}
+    </div>` : ''}
+  </div>`;
+}
+
+function upload() {
+  const s = S.uploadStep;
+  const f = S.uploadForm;
+  return `<div class="page">
+    <div class="page-header">
+      <div class="page-title">Upload Source</div>
+      <div class="page-sub">Add a research publication to your source library</div>
+    </div>
+    <div class="steps">
+      <div class="step ${s>=1?(s>1?'done':'active'):''}">1. Source text</div>
+      <div class="step ${s>=2?(s>2?'done':'active'):''}">2. Metadata</div>
+      <div class="step ${s>=3?'active':''}">3. Saved</div>
+    </div>
+
+    ${s===1 ? `<div class="card">
+      <div class="card-title">Source text</div>
+      <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.style.background='var(--purple-light)'" ondragleave="this.style.background=''" ondrop="handleDrop(event)">
+        <span class="upload-icon"><i class="ti ti-file-upload"></i></span>
+        <div class="upload-label" style="font-weight:500;">Click to upload or drag and drop</div>
+        <div class="upload-hint" style="margin-top:6px;">PDF &nbsp;·&nbsp; DOCX &nbsp;·&nbsp; TXT &nbsp;·&nbsp; DOC</div>
+        <div class="upload-hint">Text will be extracted automatically</div>
+        <input type="file" id="file-input" style="display:none" accept=".pdf,.docx,.doc,.txt" onchange="handleFile(event)">
+      </div>
+      <div id="file-status" style="display:none;margin-top:10px;padding:10px 14px;border-radius:var(--radius-md);background:var(--purple-light);color:var(--purple-dark);font-size:13px;display:flex;align-items:center;gap:8px;"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin:1rem 0;"><div style="flex:1;height:0.5px;background:var(--border-light);"></div><span style="font-size:12px;color:var(--text-tertiary);">or paste text directly</span><div style="flex:1;height:0.5px;background:var(--border-light);"></div></div>
+      <label class="label-first">Paste publication text, abstract, or key excerpts</label>
+      <textarea id="src-text" rows="8" placeholder="Paste the full text, abstract, or key sections of the publication here...">${esc(f.text)}</textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="uploadStep2()"><i class="ti ti-arrow-right"></i> Continue to metadata</button>
+      </div>
+    </div>` : s===2 ? `<div class="card">
+      <div class="card-title">Publication metadata</div>
+      <label class="label-first">Full APA 7 reference</label>
+      <textarea id="src-apa" rows="3" placeholder="Author, A. A., & Author, B. B. (Year). Title of article. Journal Name, Vol(Issue), pages. https://doi.org/...">${esc(f.apa)}</textarea>
+      <div class="grid-2">
+        <div><label>Author(s)</label><input id="src-authors" value="${esc(f.authors)}" placeholder="e.g. Rout, M., Reid, J."></div>
+        <div><label>Year</label><input id="src-year" value="${esc(f.year)}" placeholder="2024"></div>
+      </div>
+      <label>Title</label>
+      <input id="src-title" value="${esc(f.title)}" placeholder="Publication title">
+      <div class="grid-2">
+        <div><label>Journal / Book / Source</label><input id="src-journal" value="${esc(f.journal)}" placeholder="Journal or book name"></div>
+        <div><label>DOI or URL</label><input id="src-doi" value="${esc(f.doi)}" placeholder="https://doi.org/..."></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Source type</label>
+          <select id="src-type">
+            ${['Journal article','Book chapter','Report','Thesis','Conference paper','Book','Policy document','Other'].map(o=>`<option ${f.source_type===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+        <div><label>Discipline / Field</label><input id="src-discipline" value="${esc(f.discipline)}" placeholder="e.g. Māori Studies, Marketing"></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Country / Context</label><input id="src-country" value="${esc(f.country)}" placeholder="e.g. Aotearoa New Zealand"></div>
+        <div><label>Indigenous / Māori relevance</label>
+          <select id="src-maori">
+            <option value="">— Select —</option>
+            ${['High','Medium','Low','None'].map(o=>`<option ${f.maori_relevance===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="S.uploadStep=1;saveState();renderPage()"><i class="ti ti-arrow-left"></i> Back</button>
+        <button class="btn btn-primary" onclick="saveMeta()"><i class="ti ti-device-floppy"></i> Save source</button>
+      </div>
+    </div>` : `<div class="card">
+      <div class="card-title" style="color:var(--teal);"><i class="ti ti-circle-check"></i> Source saved</div>
+      <div class="evidence-row" style="margin:0 0 1rem;">
+        <div class="evidence-meta">
+          ${f.source_type?`<span class="badge badge-gray">${esc(f.source_type)}</span>`:''}
+          ${f.maori_relevance?`<span class="badge badge-teal">Māori: ${esc(f.maori_relevance)}</span>`:''}
+        </div>
+        <div class="source-title">${esc(f.title||'Untitled')}</div>
+        <div class="source-meta">${esc(f.authors||'')}${f.year?' ('+f.year+')':''} · ${esc(f.journal||'')}</div>
+        ${f.apa?`<div style="font-size:11px;color:var(--text-tertiary);margin-top:6px;font-style:italic;">${esc(f.apa)}</div>`:''}
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="navigate('map')"><i class="ti ti-map-pin"></i> Map a claim to this source</button>
+        <button class="btn" onclick="resetUpload()"><i class="ti ti-plus"></i> Upload another</button>
+        <button class="btn" onclick="navigate('sources')">View all sources</button>
+      </div>
+    </div>`}
+  </div>`;
+}
+
+function map() {
+  const f = S.mapForm;
+  const res = S.analysisResult;
+  const srcOpts = S.sources.map((s,i) =>
+    `<option value="${i}" ${f.source_idx===i?'selected':''}>${esc(s.title||'Source '+(i+1))} — ${esc(s.authors||'')} ${s.year?'('+s.year+')':''}</option>`
+  ).join('');
+
+  return `<div class="page">
+    <div class="page-header">
+      <div class="page-title">Claim Mapping</div>
+      <div class="page-sub">Map a source to the exact sentence or idea you need to support</div>
+    </div>
+
+    ${!S.apiKey ? `<div class="api-banner">
+      <i class="ti ti-key"></i>
+      <div class="api-banner-text"><strong>OpenAI API key required for AI analysis.</strong> Go to Settings and enter your OpenAI API key to enable the analysis engine. Get one at <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--purple-dark);">platform.openai.com/api-keys</a>.</div>
+    </div>` : ''}
+
+    <div class="card">
+      <div class="card-title">Your writing context</div>
+      <div class="grid-2">
+        <div><label class="label-first">Purpose of use</label>
+          <select id="map-purpose">
+            <option value="">— Select —</option>
+            ${PURPOSES.map(p=>`<option ${f.purpose===p?'selected':''}>${p}</option>`).join('')}
+          </select>
+        </div>
+        <div><label class="label-first">Project / paper title</label>
+          <input id="map-project" value="${esc(f.project)}" placeholder="e.g. Māori Marketing article">
+        </div>
+      </div>
+      <label>Section / chapter</label>
+      <input id="map-section" value="${esc(f.section)}" placeholder="e.g. Section 3: Māori value exchange">
+      <label>Your exact sentence, paragraph, or claim</label>
+      <textarea id="map-sentence" rows="5" placeholder="Paste the exact sentence or paragraph from your own writing that you want to support, complicate, or refine...">${esc(f.sentence)}</textarea>
+      <label>What do you need this source to do?</label>
+      <select id="map-needs">
+        ${NEEDS.map(o=>`<option ${f.needs_to_do===o?'selected':''}>${o}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Select source</div>
+      ${S.sources.length === 0
+        ? `<div style="font-size:13px;color:var(--text-secondary);">No sources uploaded yet. <button class="btn btn-sm" onclick="navigate('upload')"><i class="ti ti-upload"></i> Upload a source</button></div>`
+        : `<label class="label-first">Source to analyse against</label><select id="map-source">${srcOpts}</select>`
+      }
+    </div>
+
+    <div class="card">
+      <div class="card-title">Themes</div>
+      <div class="card-sub">Select themes relevant to your writing context — these will be logged with the evidence record</div>
+      <div class="tags" id="selected-themes">
+        ${(f.themes||[]).map(t=>`<span class="tag">${esc(t)}<span class="tag-del" onclick="removeTheme('${esc(t)}')">&times;</span></span>`).join('')}
+      </div>
+      <div style="margin-top:12px;">
+        ${THEMES_PRESET.filter(t=>!(f.themes||[]).includes(t)).map(t=>`<span class="theme-pill" onclick="addTheme('${esc(t)}')">${esc(t)}</span>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <input id="custom-theme" placeholder="Add a custom theme…" style="flex:1;">
+        <button class="btn btn-sm" onclick="addCustomTheme()"><i class="ti ti-plus"></i> Add</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="analyse-btn" onclick="runAnalysis()">
+        <i class="ti ti-sparkles"></i> Analyse claim
+      </button>
+    </div>
+
+    ${res ? analysisResult(res) : ''}
+  </div>`;
+}
+
+function analysisResult(res) {
+  return `<div class="card" style="border-color:var(--purple-mid);margin-top:1rem;" id="analysis-result">
+    <div class="card-title" style="color:var(--purple-dark);font-size:14px;"><i class="ti ti-sparkles"></i> Evidence analysis</div>
+    <div class="tab-row">
+      <button class="tab active" onclick="switchTab(event,'tab-summary')">Summary</button>
+      <button class="tab" onclick="switchTab(event,'tab-claims')">Claim mapping</button>
+      <button class="tab" onclick="switchTab(event,'tab-quotes')">Quotes</button>
+      <button class="tab" onclick="switchTab(event,'tab-themes')">Themes</button>
+      <button class="tab" onclick="switchTab(event,'tab-assumptions')">Subtext</button>
+      <button class="tab" onclick="switchTab(event,'tab-scite')">Literature search</button>
+      <button class="tab" onclick="switchTab(event,'tab-record')">Evidence record</button>
+    </div>
+
+    <div id="tab-summary">
+      <div class="result-label">Plain-English summary</div>
+      <div class="result-text">${esc(res.plain_summary||'')}</div>
+      <div class="result-section">
+        <div class="result-label">Academic summary</div>
+        <div class="result-text">${esc(res.academic_summary||'')}</div>
+      </div>
+      <div class="result-section">
+        <div class="result-label">Methodology</div>
+        <div class="result-text">${esc(res.methodology||'')}</div>
+      </div>
+      <div class="result-section">
+        <div class="result-label">Contribution to knowledge</div>
+        <div class="result-text">${esc(res.contribution||'')}</div>
+      </div>
+    </div>
+
+    <div id="tab-claims" style="display:none;">
+      <div class="result-label">Claim-by-claim support</div>
+      ${(res.claim_mappings||[]).map(cm=>`<div class="claim-item">
+        <div class="claim-item-header">
+          <div class="claim-text">"${esc(cm.claim||'')}"</div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+            ${supportBadge(cm.support_type)}
+            <span class="fit-badge">Fit: ${cm.fit_score||'—'}/10</span>
+          </div>
+        </div>
+        ${fitBar(cm.fit_score||0)}
+        <div class="result-text" style="margin-top:8px;">${esc(cm.evidence||'')}</div>
+        ${cm.caution?`<div class="caution-box"><i class="ti ti-alert-triangle"></i>${esc(cm.caution)}</div>`:''}
+      </div>`).join('')}
+      <div class="result-section">
+        <div class="result-label">Suggested citation placement</div>
+        <div class="result-text">${esc(res.citation_placement||'')}</div>
+      </div>
+      <div class="result-section">
+        <div class="result-label">Suggested sentence — edit before saving</div>
+        <textarea class="inline-edit" id="edit-sentence">${esc(res.suggested_sentence||'')}</textarea>
+      </div>
+      ${res.overclaim_warning?`<div class="caution-box" style="margin-top:10px;"><i class="ti ti-alert-triangle"></i><div><strong>Overclaiming caution:</strong> ${esc(res.overclaim_warning)}</div></div>`:''}
+    </div>
+
+    <div id="tab-quotes" style="display:none;">
+      <div class="result-label">Key quotes and passages</div>
+      ${(res.quotes||[]).length===0
+        ? `<div style="font-size:13px;color:var(--text-secondary);">No direct quotes could be extracted from the pasted text. Paraphrased evidence is in the Claim mapping tab.</div>`
+        : (res.quotes||[]).map(q=>`<div class="claim-item">
+          <div style="font-style:italic;font-size:13px;line-height:1.6;margin-bottom:6px;">"${esc(q.text||'')}"</div>
+          <div style="font-size:11px;color:var(--text-tertiary);">${q.page?'p. '+q.page+' · ':''} ${esc(q.why||'')}</div>
+        </div>`).join('')}
+    </div>
+
+    <div id="tab-themes" style="display:none;">
+      <div class="result-label">Themes extracted from this publication</div>
+      ${(res.extracted_themes||[]).map(t=>`<div class="claim-item">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:13px;font-weight:600;">${esc(t.theme||'')}</span>
+          <span class="fit-badge">Strength: ${t.strength||'—'}/10</span>
+        </div>
+        ${fitBar(t.strength||0)}
+        <div class="result-text" style="margin-top:8px;">${esc(t.explanation||'')}</div>
+      </div>`).join('')}
+    </div>
+
+    <div id="tab-assumptions" style="display:none;">
+      <div class="result-label">Subtext and underlying assumptions</div>
+      <div class="result-text">${esc(res.subtext||'')}</div>
+      ${res.best_use?`<div class="result-section"><div class="result-label">Best use recommendation</div><div class="result-text">${esc(res.best_use)}</div></div>`:''}
+    </div>
+
+    <div id="tab-scite" style="display:none;">
+      <div class="result-label">Search Semantic Scholar for related literature</div>
+      <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:12px;">
+        Semantic Scholar is a free academic search engine covering 200 million+ papers across all disciplines. Use it to find related sources, check citation counts, and add papers directly to your source library. No account or key needed.
+      </p>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input id="ss-query" placeholder="e.g. pounamu taonga Māori exchange relational value" style="flex:1;" value="${esc((res.exact_claim||res.my_sentence||'').slice(0,120))}">
+        <button class="btn btn-primary btn-sm" onclick="runSSSearch()"><i class="ti ti-search"></i> Search</button>
+      </div>
+      <div id="ss-results"><div style="font-size:13px;color:var(--text-tertiary);">Enter a search term above and click Search to find related literature.</div></div>
+    </div>
+
+    <div id="tab-record" style="display:none;">
+      <div class="result-label">Evidence record preview</div>
+      <table class="record-table">
+        ${[
+          ['Purpose of use', res.purpose],
+          ['Project', res.project],
+          ['Section', res.section],
+          ['My sentence / idea', (res.my_sentence||'').slice(0,300)],
+          ['Source APA 7', res.source_apa],
+          ['Themes', (res.themes||[]).join('; ')],
+          ['Exact claim supported', res.exact_claim],
+          ['Evidence from source', res.evidence_from_source],
+          ['Support type', res.support_type],
+          ['Fit score', (res.fit_score||'—')+'/10'],
+          ['Citation placement', res.citation_placement],
+          ['Caution', res.caution||'None'],
+          ['Best use', res.best_use],
+        ].map(([k,v])=>`<tr><td>${k}</td><td>${esc(v||'')}</td></tr>`).join('')}
+      </table>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveRecord()"><i class="ti ti-device-floppy"></i> Save evidence record</button>
+        <button class="btn" onclick="copyTSV()"><i class="ti ti-clipboard"></i> Copy as TSV row</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function library() {
+  let records = [...S.evidenceRecords];
+  const sq = (S.libSearch||'').toLowerCase();
+  if (sq) records = records.filter(r =>
+    (r.my_sentence||'').toLowerCase().includes(sq) ||
+    (r.source_apa||'').toLowerCase().includes(sq) ||
+    (r.project||'').toLowerCase().includes(sq) ||
+    (r.exact_claim||'').toLowerCase().includes(sq) ||
+    (r.themes||[]).some(t=>t.toLowerCase().includes(sq))
+  );
+  if (S.libProject) records = records.filter(r=>r.project===S.libProject);
+  if (S.libPurpose) records = records.filter(r=>r.purpose===S.libPurpose);
+  if (S.libSupport) records = records.filter(r=>r.support_type===S.libSupport);
+  if (S.libTheme) records = records.filter(r=>(r.themes||[]).includes(S.libTheme));
+
+  const allProjects = [...new Set(S.evidenceRecords.map(r=>r.project).filter(Boolean))];
+  const allThemes = [...new Set(S.evidenceRecords.flatMap(r=>r.themes||[]))];
+
+  return `<div class="page">
+    <div class="page-header">
+      <div class="page-title">Evidence Library</div>
+      <div class="page-sub">${S.evidenceRecords.length} evidence record${S.evidenceRecords.length!==1?'s':''} · ${records.length} shown</div>
+    </div>
+    <div class="search-row">
+      <input id="lib-search" placeholder="Search by claim, source, theme, project, keyword…" value="${esc(S.libSearch||'')}">
+      <button class="btn btn-sm" onclick="clearSearch()">Clear</button>
+    </div>
+    <div class="filter-row">
+      <select onchange="S.libProject=this.value;saveState();renderPage()">
+        <option value="">All projects</option>
+        ${allProjects.map(p=>`<option ${S.libProject===p?'selected':''}>${esc(p)}</option>`).join('')}
+      </select>
+      <select onchange="S.libPurpose=this.value;saveState();renderPage()">
+        <option value="">All purposes</option>
+        ${PURPOSES.map(p=>`<option ${S.libPurpose===p?'selected':''}>${p}</option>`).join('')}
+      </select>
+      <select onchange="S.libSupport=this.value;saveState();renderPage()">
+        <option value="">All support types</option>
+        ${SUPPORT_TYPES.map(t=>`<option ${S.libSupport===t?'selected':''}>${t}</option>`).join('')}
+      </select>
+      <select onchange="S.libTheme=this.value;saveState();renderPage()">
+        <option value="">All themes</option>
+        ${allThemes.map(t=>`<option ${S.libTheme===t?'selected':''}>${esc(t)}</option>`).join('')}
+      </select>
+    </div>
+
+    ${records.length === 0
+      ? `<div class="card"><div class="empty-state">
+          <i class="ti ti-books"></i>
+          <div class="empty-state-title">${S.evidenceRecords.length===0?'No evidence records yet':'No records match your filters'}</div>
+          <div class="empty-state-sub">${S.evidenceRecords.length===0?'Map a claim to create your first evidence record.':'Try adjusting your search or filters.'}</div>
+        </div></div>`
+      : records.map((r,i) => {
+          const realIdx = S.evidenceRecords.indexOf(r);
+          return `<div class="evidence-row">
+            <div class="evidence-meta">
+              ${r.purpose?`<span class="badge badge-purple">${esc(r.purpose)}</span>`:''}
+              ${r.project?`<span class="badge badge-teal">${esc(r.project)}</span>`:''}
+              ${r.section?`<span class="badge badge-gray">${esc(r.section)}</span>`:''}
+              <span style="margin-left:auto;">${supportBadge(r.support_type)}</span>
+              ${r.fit_score?`<span style="font-size:12px;color:var(--text-secondary);font-weight:500;">Fit: ${r.fit_score}/10</span>`:''}
+            </div>
+            <div class="evidence-sentence">"${esc((r.my_sentence||'').slice(0,220))}${r.my_sentence&&r.my_sentence.length>220?'…':''}"</div>
+            ${r.exact_claim?`<div class="evidence-claim">${esc(r.exact_claim)}</div>`:''}
+            <div class="evidence-source">${esc(r.source_apa||'')}</div>
+            ${(r.themes||[]).length>0?`<div class="tags" style="margin-top:8px;">${r.themes.slice(0,6).map(t=>`<span class="badge badge-purple">${esc(t)}</span>`).join('')}</div>`:''}
+            ${r.caution?`<div class="caution-box" style="margin-top:8px;"><i class="ti ti-alert-triangle"></i>${esc(r.caution)}</div>`:''}
+            <div style="display:flex;gap:8px;margin-top:10px;">
+              <button class="btn btn-sm" onclick="copyRecordTSV(${realIdx})"><i class="ti ti-clipboard"></i> Copy TSV</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteRecord(${realIdx})"><i class="ti ti-trash"></i> Delete</button>
+            </div>
+          </div>`;
+        }).join('')}
+  </div>`;
+}
+
+function sources() {
+  return `<div class="page">
+    <div class="page-header">
+      <div class="page-title">Source Profiles</div>
+      <div class="page-sub">${S.sources.length} source${S.sources.length!==1?'s':''} in library</div>
+    </div>
+    ${S.sources.length === 0
+      ? `<div class="card"><div class="empty-state">
+          <i class="ti ti-file-text"></i>
+          <div class="empty-state-title">No sources yet</div>
+          <div class="empty-state-sub">Upload a research publication to get started.</div>
+          <div class="btn-row" style="justify-content:center;margin-top:1rem;">
+            <button class="btn btn-primary" onclick="navigate('upload')"><i class="ti ti-upload"></i> Upload source</button>
+          </div>
+        </div></div>`
+      : S.sources.map((s,i) => {
+          const linked = S.evidenceRecords.filter(r=>r.source_idx===i);
+          return `<div class="card">
+            <div class="source-header">
+              <div style="flex:1;">
+                <div class="source-title">${esc(s.title||'Untitled')}</div>
+                <div class="source-meta">${esc(s.authors||'')}${s.year?' ('+s.year+')':''} · ${esc(s.journal||'')}</div>
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;">
+                ${s.source_type?`<span class="badge badge-gray">${esc(s.source_type)}</span>`:''}
+                ${s.maori_relevance?`<span class="badge badge-teal">Māori: ${esc(s.maori_relevance)}</span>`:''}
+              </div>
+            </div>
+            ${s.apa?`<div style="font-size:12px;color:var(--text-tertiary);font-style:italic;margin-bottom:10px;">${esc(s.apa)}</div>`:''}
+            ${s.doi?`<div style="font-size:12px;margin-bottom:10px;"><a href="${esc(s.doi)}" target="_blank" style="color:var(--purple);">${esc(s.doi)}</a></div>`:''}
+            ${s.discipline||s.country?`<div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">${[s.discipline,s.country].filter(Boolean).join(' · ')}</div>`:''}
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;font-weight:500;">${linked.length} evidence record${linked.length!==1?'s':''} linked to this source</div>
+            ${linked.length>0?`<div>${linked.map(r=>`<div style="font-size:12px;padding:5px 0;border-bottom:0.5px solid var(--border-light);display:flex;gap:8px;align-items:center;">
+              <span class="badge badge-purple" style="font-size:10px;">${esc(r.purpose||'')}</span>
+              <span>${esc(r.project||'Untitled')}</span>
+              <span style="color:var(--text-tertiary);">— ${esc(r.section||'')}</span>
+            </div>`).join('')}</div>`:''}
+            <div class="btn-row" style="margin-top:0.75rem;">
+              <button class="btn btn-sm" onclick="navigate('map');S.mapForm.source_idx=${i};saveState();renderPage()"><i class="ti ti-map-pin"></i> Map a claim</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteSource(${i})"><i class="ti ti-trash"></i> Remove</button>
+            </div>
+          </div>`;
+        }).join('')}
+  </div>`;
+}
+
+function themes() {
+  const themeMap = {};
+  S.evidenceRecords.forEach(r => {
+    (r.themes||[]).forEach(t => {
+      if (!themeMap[t]) themeMap[t] = { sources: [], projects: [], records: [], scores: [] };
+      if (r.source_apa && !themeMap[t].sources.includes(r.source_apa)) themeMap[t].sources.push(r.source_apa);
+      if (r.project && !themeMap[t].projects.includes(r.project)) themeMap[t].projects.push(r.project);
+      themeMap[t].records.push(r);
+      if (r.fit_score) themeMap[t].scores.push(r.fit_score);
+    });
+  });
+  const entries = Object.entries(themeMap).sort((a,b)=>b[1].records.length-a[1].records.length);
+
+  return `<div class="page">
+    <div class="page-header">
+      <div class="page-title">Theme Map</div>
+      <div class="page-sub">How themes connect across sources, records, and projects</div>
+    </div>
+    ${entries.length === 0
+      ? `<div class="card"><div class="empty-state">
+          <i class="ti ti-tags"></i>
+          <div class="empty-state-title">No themes logged yet</div>
+          <div class="empty-state-sub">Save evidence records with themes to populate this map.</div>
+        </div></div>`
+      : entries.map(([theme, data]) => {
+          const avgScore = data.scores.length ? Math.round(data.scores.reduce((a,b)=>a+b,0)/data.scores.length) : null;
+          return `<div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+              <div style="font-size:15px;font-weight:600;">${esc(theme)}</div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <span class="badge badge-purple">${data.records.length} record${data.records.length!==1?'s':''}</span>
+                ${avgScore?`<span class="badge badge-teal">Avg fit: ${avgScore}/10</span>`:''}
+              </div>
+            </div>
+            ${data.projects.length>0?`<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;"><strong>Projects:</strong> ${data.projects.map(p=>esc(p)).join(', ')}</div>`:''}
+            ${data.sources.length>0?`<div style="font-size:12px;color:var(--text-tertiary);">${data.sources.slice(0,2).map(s=>esc(s.slice(0,80)+'…')).join(' · ')}</div>`:''}
+          </div>`;
+        }).join('')}
+  </div>`;
+}
+
+function exportPage() {
+  const rCount = S.evidenceRecords.length;
+  const sCount = S.sources.length;
+  return `<div class="page">
+    <div class="page-header">
+      <div class="page-title">Export Centre</div>
+      <div class="page-sub">Export your library in multiple formats</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Evidence records</div>
+      <div class="export-item">
+        <div class="export-item-info">
+          <div class="export-item-title">Evidence library (CSV)</div>
+          <div class="export-item-desc">${rCount} record${rCount!==1?'s':''} — all fields, comma-separated</div>
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="exportCSV()"><i class="ti ti-download"></i> Download CSV</button>
+      </div>
+      <div class="export-item">
+        <div class="export-item-info">
+          <div class="export-item-title">Google Sheets TSV</div>
+          <div class="export-item-desc">Tab-separated — paste directly into Google Sheets</div>
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="exportTSV()"><i class="ti ti-clipboard"></i> Copy TSV</button>
+      </div>
+      <div class="export-item">
+        <div class="export-item-info">
+          <div class="export-item-title">Claim-support table (CSV)</div>
+          <div class="export-item-desc">My claim · Source · Evidence · Support type · Fit score · Caution</div>
+        </div>
+        <button class="btn btn-sm" onclick="exportClaimCSV()"><i class="ti ti-download"></i> Download CSV</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Sources</div>
+      <div class="export-item">
+        <div class="export-item-info">
+          <div class="export-item-title">APA 7 reference list</div>
+          <div class="export-item-desc">${sCount} source${sCount!==1?'s':''}</div>
+        </div>
+        <button class="btn btn-sm" onclick="exportAPA()"><i class="ti ti-clipboard"></i> Copy to clipboard</button>
+      </div>
+      <div class="export-item">
+        <div class="export-item-info">
+          <div class="export-item-title">Source summary table (CSV)</div>
+          <div class="export-item-desc">Title · Authors · Year · Journal · Type · Māori relevance · APA</div>
+        </div>
+        <button class="btn btn-sm" onclick="exportSourceCSV()"><i class="ti ti-download"></i> Download CSV</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Themes</div>
+      <div class="export-item">
+        <div class="export-item-info">
+          <div class="export-item-title">Theme map (CSV)</div>
+          <div class="export-item-desc">Theme · Record count · Projects · Sources</div>
+        </div>
+        <button class="btn btn-sm" onclick="exportThemeCSV()"><i class="ti ti-download"></i> Download CSV</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Google Sheets column headers</div>
+      <div style="font-size:11px;color:var(--text-secondary);line-height:2;word-break:break-all;">
+        Purpose of Use &nbsp;|&nbsp; Project/Paper Title &nbsp;|&nbsp; Section &nbsp;|&nbsp; Source APA 7 &nbsp;|&nbsp; Author(s) &nbsp;|&nbsp; Year &nbsp;|&nbsp; Title &nbsp;|&nbsp; Key Themes &nbsp;|&nbsp; Subthemes &nbsp;|&nbsp; My Sentence/Idea &nbsp;|&nbsp; Exact Claim Supported &nbsp;|&nbsp; Evidence From Source &nbsp;|&nbsp; Quote/Page &nbsp;|&nbsp; Support Type &nbsp;|&nbsp; Suggested Inserted Sentence &nbsp;|&nbsp; Citation Placement &nbsp;|&nbsp; Fit Score &nbsp;|&nbsp; Caution &nbsp;|&nbsp; Best Use &nbsp;|&nbsp; Notes
+      </div>
+      <button class="btn btn-sm" style="margin-top:10px;" onclick="copyHeaders()"><i class="ti ti-clipboard"></i> Copy headers</button>
+    </div>
+    <div id="export-confirm" style="display:none;" class="card" style="border-color:var(--teal);">
+      <div style="color:var(--teal);font-size:13px;font-weight:500;"><i class="ti ti-check"></i> Copied to clipboard!</div>
+    </div>
+  </div>`;
+}
+
+function settings() {
+  return `<div class="page">
+    <div class="page-header">
+      <div class="page-title">Settings</div>
+      <div class="page-sub">Configure your Evidence Mapper</div>
+    </div>
+    <div class="card">
+      <div class="card-title">OpenAI API key</div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6;">
+        The AI analysis engine uses GPT-4o. Enter your OpenAI API key below.
+        Your key is stored only in your browser's local storage.
+        Get a key at <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--purple);">platform.openai.com/api-keys</a>.
+      </p>
+      <label class="label-first">OpenAI API key</label>
+      <input type="password" id="api-key-input" value="${esc(S.apiKey||'')}" placeholder="sk-...">
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveApiKey()"><i class="ti ti-device-floppy"></i> Save key</button>
+        ${S.apiKey?`<button class="btn btn-danger" onclick="clearApiKey()"><i class="ti ti-trash"></i> Remove key</button>`:''}
+      </div>
+      ${S.apiKey?`<div style="margin-top:10px;font-size:12px;color:var(--teal);"><i class="ti ti-check"></i> OpenAI key saved — analysis engine ready.</div>`:''}
+    </div>
+    <div class="card">
+      <div class="card-title">Literature search</div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:0;line-height:1.6;">
+        The <strong>Semantic Scholar</strong> search tab (inside Claim Mapping results) is free and requires no key — it searches 200M+ academic papers automatically.
+        For deeper citation analysis (who supports or contrasts a paper), use your <strong>Scite connector inside ChatGPT</strong> separately.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-title">Data management</div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6;">
+        All your data is stored in your browser's local storage. It persists between sessions on this device.
+        Export your data from the Export Centre before clearing.
+      </p>
+      <div class="btn-row">
+        <button class="btn btn-danger" onclick="clearAllData()"><i class="ti ti-trash"></i> Clear all data</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── Bind handlers ────────────────────────────────────────────────────────────
+function bindPage() {
+  const libSearch = document.getElementById('lib-search');
+  if (libSearch) {
+    libSearch.addEventListener('input', e => { S.libSearch = e.target.value; saveState(); renderPage(); });
+  }
+}
+
+// ─── Upload ───────────────────────────────────────────────────────────────────
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').style.background = '';
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (file) processFile(file);
+}
+
+function setFileStatus(msg, type='loading') {
+  const el = document.getElementById('file-status');
+  if (!el) return;
+  el.style.display = 'flex';
+  const colors = { loading:'var(--purple-light);color:var(--purple-dark)', done:'var(--teal-light);color:var(--teal)', error:'var(--red-light);color:var(--red)' };
+  el.style.cssText += `;background:${colors[type].split(';')[0]};color:${colors[type].split(';')[1] || ''}`;
+  const icon = type==='loading'?'ti-loader-2':type==='done'?'ti-circle-check':'ti-alert-triangle';
+  el.innerHTML = `<i class="ti ${icon}" style="${type==='loading'?'animation:spin 1s linear infinite':''}"></i> ${msg}`;
+}
+
+async function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function processFile(file) {
+  const name = file.name.toLowerCase();
+  const ext = name.split('.').pop();
+  setFileStatus(`Reading ${file.name}…`);
+
+  try {
+    if (ext === 'txt') {
+      const text = await file.text();
+      setFileText(text, file.name);
+
+    } else if (ext === 'pdf') {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const total = pdf.numPages;
+      let fullText = '';
+      for (let i = 1; i <= total; i++) {
+        setFileStatus(`Extracting PDF — page ${i} of ${total}…`);
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const pageText = content.items.map(item => item.str).join(' ');
+        fullText += pageText + '\n\n';
+      }
+      setFileText(fullText.trim(), file.name);
+
+    } else if (ext === 'docx' || ext === 'doc') {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      if (result.messages && result.messages.length) console.warn('Mammoth warnings:', result.messages);
+      setFileText(result.value.trim(), file.name);
+
+    } else {
+      setFileStatus('Unsupported file type. Please use PDF, DOCX, or TXT.', 'error');
+    }
+  } catch(err) {
+    console.error(err);
+    setFileStatus('Could not extract text: ' + err.message + '. Try pasting the text manually below.', 'error');
+  }
+}
+
+function setFileText(text, filename) {
+  const ta = document.getElementById('src-text');
+  if (ta) ta.value = text;
+  S.uploadForm.text = text;
+  const words = text.trim().split(/\s+/).length;
+  setFileStatus(`${filename} extracted — ${words.toLocaleString()} words ready.`, 'done');
+  // Auto-populate title from filename if empty
+  if (!S.uploadForm.title) {
+    const guessTitle = filename.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+    S.uploadForm.title = guessTitle;
+  }
+}
+
+function uploadStep2() {
+  S.uploadForm.text = document.getElementById('src-text')?.value || '';
+  if (!S.uploadForm.text.trim()) { toast('Please paste or upload source text.', 'ti-alert-triangle'); return; }
+  S.uploadStep = 2;
+  saveState();
+  renderPage();
+}
+
+function saveMeta() {
+  const f = S.uploadForm;
+  f.apa = document.getElementById('src-apa')?.value || '';
+  f.authors = document.getElementById('src-authors')?.value || '';
+  f.year = document.getElementById('src-year')?.value || '';
+  f.title = document.getElementById('src-title')?.value || '';
+  f.journal = document.getElementById('src-journal')?.value || '';
+  f.doi = document.getElementById('src-doi')?.value || '';
+  f.source_type = document.getElementById('src-type')?.value || '';
+  f.discipline = document.getElementById('src-discipline')?.value || '';
+  f.country = document.getElementById('src-country')?.value || '';
+  f.maori_relevance = document.getElementById('src-maori')?.value || '';
+  if (!f.title.trim()) { toast('Please enter a publication title.', 'ti-alert-triangle'); return; }
+  S.sources.push({ ...f });
+  S.uploadStep = 3;
+  saveState();
+  renderPage();
+}
+
+function resetUpload() {
+  S.uploadForm = { text:'', apa:'', authors:'', year:'', title:'', journal:'', doi:'', source_type:'Journal article', discipline:'', country:'', maori_relevance:'' };
+  S.uploadStep = 1;
+  saveState();
+  renderPage();
+}
+
+// ─── Themes ───────────────────────────────────────────────────────────────────
+function addTheme(t) {
+  if (!S.mapForm.themes.includes(t)) S.mapForm.themes.push(t);
+  saveState(); renderPage();
+}
+function removeTheme(t) {
+  S.mapForm.themes = S.mapForm.themes.filter(x => x !== t);
+  saveState(); renderPage();
+}
+function addCustomTheme() {
+  const v = document.getElementById('custom-theme')?.value?.trim();
+  if (v && !S.mapForm.themes.includes(v)) { S.mapForm.themes.push(v); saveState(); renderPage(); }
+}
+
+// ─── Analysis ─────────────────────────────────────────────────────────────────
+function readMapForm() {
+  S.mapForm.purpose = document.getElementById('map-purpose')?.value || '';
+  S.mapForm.project = document.getElementById('map-project')?.value || '';
+  S.mapForm.section = document.getElementById('map-section')?.value || '';
+  S.mapForm.sentence = document.getElementById('map-sentence')?.value || '';
+  S.mapForm.needs_to_do = document.getElementById('map-needs')?.value || '';
+  const sel = document.getElementById('map-source');
+  if (sel) S.mapForm.source_idx = parseInt(sel.value) || 0;
+}
+
+async function runAnalysis() {
+  readMapForm();
+  const f = S.mapForm;
+  if (!f.sentence.trim()) { toast('Please enter your sentence or claim.', 'ti-alert-triangle'); return; }
+  if (S.sources.length === 0) { toast('Please upload a source first.', 'ti-alert-triangle'); return; }
+  if (!S.apiKey) { toast('Please add your OpenAI API key in Settings.', 'ti-alert-triangle'); return; }
+
+  const btn = document.getElementById('analyse-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Analysing…'; }
+
+  const src = S.sources[f.source_idx] || S.sources[0];
+  const srcIdx = f.source_idx >= 0 && S.sources[f.source_idx] ? f.source_idx : 0;
+
+  const system = `You are a rigorous academic research evidence mapping assistant. Analyse a research publication and map it to the user's exact writing claim. Rules:
+- Never invent quotes or page numbers. If unsure, label as paraphrase.
+- Clearly distinguish Direct, Partial, Contextual, and Not supported.
+- Flag overclaiming if the user's sentence goes beyond what the source supports.
+- Use NZ English (analyse, recognise, favour, colour).
+- Prioritise exact claim matching over broad relevance.
+- Treat Māori, Indigenous, cultural, and sovereignty concepts with care.
+- Never flatten Indigenous concepts into Western equivalents.
+- Be precise, specific, and academically rigorous.
+
+Respond with ONLY valid JSON — no markdown, no preamble:
+{
+  "plain_summary": "plain English summary",
+  "academic_summary": "formal academic summary: theoretical positioning, methodology, contribution",
+  "methodology": "methodology and evidence base",
+  "contribution": "contribution to knowledge",
+  "subtext": "worldview, what is centred/marginalised, what the user should be careful about when citing",
+  "claim_mappings": [{"claim":"sub-claim","support_type":"Direct|Partial|Contextual|Not supported","evidence":"paraphrased evidence","fit_score":8,"caution":"or null"}],
+  "citation_placement": "where citation goes",
+  "suggested_sentence": "polished academic sentence with (Author, Year) placeholder",
+  "overclaim_warning": "if overclaiming, explain; else null",
+  "quotes": [{"text":"direct quote","page":"or null","why":"why it matters"}],
+  "extracted_themes": [{"theme":"name","explanation":"explanation","strength":8}],
+  "exact_claim": "single most specific claim this source supports",
+  "evidence_from_source": "key evidence paraphrase",
+  "support_type": "Direct|Partial|Contextual|Not supported",
+  "fit_score": 8,
+  "caution": "overall caution or null",
+  "best_use": "best recommended use of this source"
+}`;
+
+  const userMsg = `PUBLICATION TEXT:\n${(src.text||'').slice(0,7000)}\n\nMETADATA:\nTitle: ${src.title}\nAuthors: ${src.authors}\nYear: ${src.year}\nSource: ${src.journal}\nAPA: ${src.apa}\nDiscipline: ${src.discipline}\nContext: ${src.country}\nMāori relevance: ${src.maori_relevance}\n\nMY WRITING CONTEXT:\nPurpose: ${f.purpose}\nProject: ${f.project}\nSection: ${f.section}\nThemes: ${(f.themes||[]).join(', ')}\nNeeds to do: ${f.needs_to_do}\n\nMY EXACT SENTENCE:\n"${f.sentence}"`;
+
+  try {
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + S.apiKey
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        max_tokens: 2000,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: userMsg }
+        ]
+      })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.choices?.[0]?.message?.content || '';
+    const clean = text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    parsed.purpose = f.purpose;
+    parsed.project = f.project;
+    parsed.section = f.section;
+    parsed.my_sentence = f.sentence;
+    parsed.themes = [...(f.themes||[])];
+    parsed.source_apa = src.apa || `${src.authors||''} (${src.year||''}). ${src.title||''}.`;
+    parsed.source_idx = srcIdx;
+    S.analysisResult = parsed;
+    saveState();
+    toast('Analysis complete — review the results below.', 'ti-sparkles');
+  } catch(e) {
+    toast('Analysis failed: ' + (e.message||'Unknown error'), 'ti-alert-triangle');
+  }
+
+  renderPage();
+  setTimeout(() => {
+    const el = document.getElementById('analysis-result');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+function switchTab(evt, tabId) {
+  document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = 'none');
+  document.getElementById(tabId).style.display = '';
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  evt.target.classList.add('active');
+}
+
+// ─── Save record ──────────────────────────────────────────────────────────────
+function saveRecord() {
+  const res = S.analysisResult;
+  if (!res) return;
+  const edited = document.getElementById('edit-sentence')?.value || res.suggested_sentence;
+  const record = {
+    id: Date.now(),
+    date_added: new Date().toLocaleDateString('en-NZ'),
+    purpose: res.purpose, project: res.project, section: res.section,
+    my_sentence: res.my_sentence, source_apa: res.source_apa, source_idx: res.source_idx,
+    themes: res.themes||[], exact_claim: res.exact_claim,
+    evidence_from_source: res.evidence_from_source, support_type: res.support_type,
+    fit_score: res.fit_score, citation_placement: res.citation_placement,
+    suggested_sentence: edited, caution: res.caution, best_use: res.best_use,
+    overclaim_warning: res.overclaim_warning,
+  };
+  S.evidenceRecords.push(record);
+  S.analysisResult = null;
+  S.mapForm.sentence = '';
+  saveState();
+  toast('Evidence record saved to library.', 'ti-check');
+  navigate('library');
+}
+
+// ─── Delete ───────────────────────────────────────────────────────────────────
+function deleteRecord(i) {
+  if (confirm('Delete this evidence record? This cannot be undone.')) {
+    S.evidenceRecords.splice(i, 1);
+    saveState(); renderPage();
+    toast('Record deleted.', 'ti-trash');
+  }
+}
+function deleteSource(i) {
+  if (confirm('Remove this source? Linked evidence records will lose their source reference.')) {
+    S.sources.splice(i, 1);
+    saveState(); renderPage();
+    toast('Source removed.', 'ti-trash');
+  }
+}
+
+// ─── Search ───────────────────────────────────────────────────────────────────
+function clearSearch() { S.libSearch = ''; S.libProject = ''; S.libPurpose = ''; S.libSupport = ''; S.libTheme = ''; saveState(); renderPage(); }
+
+// ─── Export ───────────────────────────────────────────────────────────────────
+function csvRow(vals) { return vals.map(v => '"' + String(v||'').replace(/"/g,'""') + '"').join(','); }
+function tsvRow(vals) { return vals.map(v => String(v||'').replace(/\t/g,' ').replace(/\n/g,' ')).join('\t'); }
+
+function exportCSV() {
+  const h = 'Date added,Purpose of use,Project/paper title,Section,My sentence/idea,Source APA 7,Themes,Exact claim supported,Evidence from source,Support type,Suggested inserted sentence,Citation placement,Fit score,Caution,Best use';
+  const rows = S.evidenceRecords.map(r => csvRow([r.date_added,r.purpose,r.project,r.section,r.my_sentence,r.source_apa,(r.themes||[]).join('; '),r.exact_claim,r.evidence_from_source,r.support_type,r.suggested_sentence,r.citation_placement,r.fit_score,r.caution,r.best_use]));
+  download([h,...rows].join('\n'), 'evidence-library.csv', 'text/csv');
+}
+
+function exportTSV() {
+  const h = 'Purpose of Use\tProject/Paper Title\tSection\tSource APA 7\tAuthor(s)\tYear\tTitle\tKey Themes\tSubthemes\tMy Sentence/Idea\tExact Claim Supported\tEvidence From Source\tQuote/Page\tSupport Type\tSuggested Inserted Sentence\tCitation Placement\tFit Score\tCaution\tBest Use\tNotes';
+  const rows = S.evidenceRecords.map(r => tsvRow([r.purpose,r.project,r.section,r.source_apa,'','','',(r.themes||[]).join('; '),'',r.my_sentence,r.exact_claim,r.evidence_from_source,'',r.support_type,r.suggested_sentence,r.citation_placement,r.fit_score,r.caution||'',r.best_use,'']));
+  navigator.clipboard.writeText([h,...rows].join('\n')).then(()=>toast('TSV copied to clipboard — paste into Google Sheets.','ti-table'));
+}
+
+function exportClaimCSV() {
+  const h = 'My claim,Supporting source,Evidence,Support type,Fit score,Citation placement,Suggested sentence,Caution';
+  const rows = S.evidenceRecords.map(r => csvRow([r.my_sentence,r.source_apa,r.evidence_from_source,r.support_type,r.fit_score,r.citation_placement,r.suggested_sentence,r.caution]));
+  download([h,...rows].join('\n'), 'claim-support-table.csv', 'text/csv');
+}
+
+function exportAPA() {
+  const refs = S.sources.map(s => s.apa || `${s.authors||'Author, A.'} (${s.year||'n.d.'}). ${s.title||'Untitled'}. ${s.journal||''}.`);
+  navigator.clipboard.writeText(refs.join('\n\n')).then(()=>toast('APA references copied to clipboard.','ti-clipboard'));
+}
+
+function exportSourceCSV() {
+  const h = 'Title,Authors,Year,Journal,Source type,Discipline,Country/context,Māori relevance,APA 7,DOI';
+  const rows = S.sources.map(s => csvRow([s.title,s.authors,s.year,s.journal,s.source_type,s.discipline,s.country,s.maori_relevance,s.apa,s.doi]));
+  download([h,...rows].join('\n'), 'source-library.csv', 'text/csv');
+}
+
+function exportThemeCSV() {
+  const themeMap = {};
+  S.evidenceRecords.forEach(r => {
+    (r.themes||[]).forEach(t => {
+      if (!themeMap[t]) themeMap[t] = {projects:[],sources:[],count:0};
+      themeMap[t].count++;
+      if (r.project&&!themeMap[t].projects.includes(r.project)) themeMap[t].projects.push(r.project);
+      if (r.source_apa&&!themeMap[t].sources.includes(r.source_apa)) themeMap[t].sources.push(r.source_apa);
+    });
+  });
+  const h = 'Theme,Record count,Projects,Sources';
+  const rows = Object.entries(themeMap).map(([t,d]) => csvRow([t,d.count,d.projects.join('; '),d.sources.join('; ')]));
+  download([h,...rows].join('\n'), 'theme-map.csv', 'text/csv');
+}
+
+function copyRecordTSV(i) {
+  const r = S.evidenceRecords[i];
+  if (!r) return;
+  const row = tsvRow([r.purpose,r.project,r.section,r.source_apa,'','','',(r.themes||[]).join('; '),'',r.my_sentence,r.exact_claim,r.evidence_from_source,'',r.support_type,r.suggested_sentence,r.citation_placement,r.fit_score,r.caution||'',r.best_use,'']);
+  navigator.clipboard.writeText(row).then(()=>toast('TSV row copied.','ti-clipboard'));
+}
+
+function copyTSV() {
+  const res = S.analysisResult;
+  if (!res) return;
+  const edited = document.getElementById('edit-sentence')?.value || res.suggested_sentence;
+  const row = tsvRow([res.purpose,res.project,res.section,res.source_apa,'','','',(res.themes||[]).join('; '),'',res.my_sentence,res.exact_claim,res.evidence_from_source,'',res.support_type,edited,res.citation_placement,res.fit_score,res.caution||'',res.best_use,'']);
+  navigator.clipboard.writeText(row).then(()=>toast('TSV row copied — paste into Google Sheets.','ti-clipboard'));
+}
+
+function copyHeaders() {
+  const h = 'Purpose of Use\tProject/Paper Title\tSection\tSource APA 7\tAuthor(s)\tYear\tTitle\tKey Themes\tSubthemes\tMy Sentence/Idea\tExact Claim Supported\tEvidence From Source\tQuote/Page\tSupport Type\tSuggested Inserted Sentence\tCitation Placement\tFit Score\tCaution\tBest Use\tNotes';
+  navigator.clipboard.writeText(h).then(()=>toast('Headers copied.','ti-clipboard'));
+}
+
+function download(content, filename, type) {
+  const a = document.createElement('a');
+  a.href = 'data:'+type+';charset=utf-8,' + encodeURIComponent(content);
+  a.download = filename;
+  a.click();
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+function saveApiKey() {
+  S.apiKey = document.getElementById('api-key-input')?.value?.trim() || '';
+  saveState(); renderPage();
+  toast('API key saved.','ti-check');
+}
+function clearApiKey() {
+  if (confirm('Remove API key?')) { S.apiKey = ''; saveState(); renderPage(); toast('API key removed.','ti-trash'); }
+}
+function saveSciteKey() {
+  S.sciteKey = document.getElementById('scite-key-input')?.value?.trim() || '';
+  saveState(); renderPage();
+  toast('Scite key saved.','ti-check');
+}
+function clearSciteKey() {
+  if (confirm('Remove Scite key?')) { S.sciteKey = ''; saveState(); renderPage(); toast('Scite key removed.','ti-trash'); }
+}
+
+async function runSSSearch() {
+  const query = document.getElementById('ss-query')?.value?.trim();
+  if (!query) return;
+  const resultsEl = document.getElementById('ss-results');
+  if (!resultsEl) return;
+
+  resultsEl.innerHTML = '<div style="font-size:13px;color:var(--text-secondary);">Searching Semantic Scholar…</div>';
+
+  try {
+    const url = `https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=8&fields=title,authors,year,journal,externalIds,citationCount,abstract,openAccessPdf`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('Search failed (status ' + resp.status + ')');
+    const data = await resp.json();
+    const papers = data.data || [];
+    if (!papers.length) {
+      resultsEl.innerHTML = '<div style="font-size:13px;color:var(--text-secondary);">No results found. Try different or broader search terms.</div>';
+      return;
+    }
+    resultsEl.innerHTML = papers.map(p => {
+      const authors = (p.authors||[]).slice(0,3).map(a=>a.name||'').join(', ') + ((p.authors||[]).length>3?' et al.':'');
+      const year = p.year || '';
+      const title = p.title || 'Untitled';
+      const journal = p.journal?.name || '';
+      const doi = p.externalIds?.DOI || '';
+      const citations = p.citationCount ?? '—';
+      const pdf = p.openAccessPdf?.url || '';
+      const abstract = (p.abstract||'').slice(0,200) + (p.abstract&&p.abstract.length>200?'…':'');
+      const apa = `${authors}${year?' ('+year+').':' (n.d.).'} ${title}.${journal?' '+journal+'.':''}${doi?' https://doi.org/'+doi:''}`;
+      const safeApa = apa.replace(/'/g,"\\'").replace(/\n/g,' ');
+      const safeAuthors = authors.replace(/'/g,"\\'");
+      const safeTitle = title.replace(/'/g,"\\'");
+      const safeJournal = journal.replace(/'/g,"\\'");
+      const safeDoi = doi.replace(/'/g,"\\'");
+      const safeYear = String(year).replace(/'/g,"\\'");
+      return `<div class="claim-item" style="margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px;line-height:1.4;">${esc(title)}</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">${esc(authors)}${year?' ('+year+')':''} · ${esc(journal)}</div>
+        ${abstract?`<div style="font-size:12px;color:var(--text-tertiary);margin-bottom:6px;line-height:1.5;">${esc(abstract)}</div>`:''}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+          <span class="badge badge-gray"><i class="ti ti-quote" style="font-size:11px;"></i> ${citations} citations</span>
+          ${pdf?`<span class="badge badge-teal"><i class="ti ti-file-type-pdf" style="font-size:11px;"></i> Open access</span>`:''}
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${doi?`<a href="https://doi.org/${esc(doi)}" target="_blank" class="btn btn-sm"><i class="ti ti-external-link"></i> View paper</a>`:''}
+          ${pdf?`<a href="${esc(pdf)}" target="_blank" class="btn btn-sm"><i class="ti ti-download"></i> PDF</a>`:''}
+          <button class="btn btn-sm btn-primary" onclick="addSSSource('${safeApa}','${safeAuthors}','${safeYear}','${safeTitle}','${safeJournal}','${safeDoi}')"><i class="ti ti-plus"></i> Add to sources</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    resultsEl.innerHTML = `<div style="font-size:13px;color:var(--red);">Search failed: ${esc(e.message)}. Please try again.</div>`;
+  }
+}
+
+function addSSSource(apa, authors, year, title, journal, doi) {
+  S.sources.push({
+    text: '', apa, authors, year, title, journal, doi,
+    source_type: 'Journal article', discipline: '', country: '', maori_relevance: ''
+  });
+  saveState();
+  toast('Source added to library — go to Source Profiles to add the full text.', 'ti-check');
+}
+function clearAllData() {
+  if (confirm('Clear ALL data — sources, records, and settings? This cannot be undone.')) {
+    localStorage.removeItem(STORAGE_KEY);
+    S = loadState();
+    renderPage();
+    toast('All data cleared.','ti-trash');
+  }
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+navigate(S.page || 'dashboard');
+</script>
+</body>
+</html>
